@@ -2294,12 +2294,21 @@ static uint32_t saved_tctrl;
 static uint16_t rep_key;
 static tick_t rep_time;
 
+static void wait_frames(uint8_t n) {
+    while (n--) { LCD_ICR = 4; while (!(LCD_RIS & 4)) {} }
+}
+
 static void lcd_setup(void) {
     lcd_Init();
-    lcd_SetRamAccessOrder(LCD_MADCTL_DEFAULT ^ LCD_MV ^ LCD_ML);
+    lcd_SetRamAccessOrder(LCD_MADCTL_DEFAULT ^ LCD_MV);
     lcd_SetColumnAddress(0, 239);
     lcd_SetRowAddress(0, 319);
+    lcd_SetNormalFrameRateControl(LCD_FRCTRL_DEFAULT);
+    lcd_SetNormalBackPorchControl(LCD_BP_DEFAULT);
+    lcd_SetRamInterface(LCD_RAMCTRL1_DEFAULT);
     lcd_Cleanup();
+    wait_frames(1);
+    memcpy((void *)&lcd_Timing0, &sv_timing, sizeof sv_timing);
 }
 
 void hw_init(void) {
